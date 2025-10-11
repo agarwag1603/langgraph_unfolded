@@ -1,3 +1,5 @@
+##Prompt chaining is an overkill when used with langgraph-  but this is a just an example where llm generates detailed outline and summarize it later.
+
 from langgraph.graph import START, END, StateGraph
 from langchain_openai import ChatOpenAI
 from typing import TypedDict
