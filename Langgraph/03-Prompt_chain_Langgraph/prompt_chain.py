@@ -73,4 +73,5 @@ print(50*("="))
 print(f"Summary as below for the {topic}")
 print(50*("="))
 print(final_state['summary'])
-
+print(50*("="))
+print(final_state)
