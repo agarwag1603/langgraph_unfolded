@@ -3,7 +3,10 @@
 import streamlit as st
 import backend_chatbot
 
-st.title("Robochat")
+st.markdown(
+    "<h1 style='text-align: center; color: #4CAF50;'>🤖 Robochat</h1>",
+    unsafe_allow_html=True
+)
 
 CONFIG= {"configurable":{"thread_id":"123"}}
 
