@@ -1,2 +1,4 @@
 .DS_Store
 .env
+Langgraph/09-Chatbot-streamlit/__pycache__/
+Langgraph/10-Chatbot-Conversation-History/__pycache__/
