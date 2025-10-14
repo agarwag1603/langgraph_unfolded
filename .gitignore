@@ -2,3 +2,10 @@
 .env
 Langgraph/09-Chatbot-streamlit/__pycache__/
 Langgraph/10-Chatbot-Conversation-History/__pycache__/
+Langgraph/11-Chatbot-Sqllite-Persistence/chatbot.db*/
+Langgraph/11-Chatbot-Sqllite-Persistence/__pycache__/
+Langgraph/11-Chatbot-Sqllite-Persistence/chatbot.db*/
+chatbot.db
+Langgraph/11-Chatbot-Sqllite-Persistence/chatbot.db-shm/
+Langgraph/11-Chatbot-Sqllite-Persistence/chatbot.db-shm
+Langgraph/11-Chatbot-Sqllite-Persistence/chatbot.db-wal
