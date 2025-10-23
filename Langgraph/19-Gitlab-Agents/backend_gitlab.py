@@ -33,14 +33,16 @@ def fetch_gitlab_issues():
 
     if response.status_code == 200:
         issues = response.json()
-        return [{"iid": i["iid"], "title": i["title"], "state": i["state"],"description": i["description"], "web_url": i["web_url"]} for i in issues]
+        return [{"iid": i["iid"], "title": i["title"], "state": i["state"],"description": i["description"], 
+                 "web_url": i["web_url"], "created_at":i["created_at"],"closed_at":i["closed_at"],"closed_by":i["author"]["username"]} 
+                 for i in issues]
     else:
         return [{"error": response.text}]
         
 @tool
 def close_gitlab_issue(issue_iid: str) -> dict:
     """
-    Based on the issue ID, the function will help close the open tickets with comment
+    Based on the issue ID, the function will help close the open tickets.
     """
     GITLAB_URL = "https://gitlab.com/api/v4"
     PROJECT_ID = os.getenv("PROJECT_ID")
@@ -57,7 +59,24 @@ def close_gitlab_issue(issue_iid: str) -> dict:
     else:
         return {"error": response.text}
 
-tools = [fetch_gitlab_issues,close_gitlab_issue]
+@tool
+def add_comment_to_issue(issue_iid: str, comment: str):
+    """Add a comment to a GitLab issue."""
+    GITLAB_URL = "https://gitlab.com/api/v4"
+    PROJECT_ID = os.getenv("PROJECT_ID")
+    TOKEN = os.getenv("GITLAB_PAT")
+
+    headers = {"PRIVATE-TOKEN": TOKEN}
+    url = f"{GITLAB_URL}/projects/{PROJECT_ID}/issues/{issue_iid}/notes"
+    data = {"body": comment}
+
+    response = requests.post(url, headers=headers, data=data)
+    if response.status_code == 201:
+        return {"message": f"Comment added to issue #{issue_iid} successfully."}
+    else:
+        return {"error": response.text}
+
+tools = [fetch_gitlab_issues,close_gitlab_issue,add_comment_to_issue]
 
 llm_with_tools= gpt_llm.bind_tools(tools)
 

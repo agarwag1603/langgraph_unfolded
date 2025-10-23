@@ -1,11 +1,46 @@
 ## This frontend is without the streaming on the streamlit
 import streamlit as st
 import backend_gitlab
+import os
+
+
+# # Read SVG logo
+# svg_path = os.path.join(os.path.dirname(__file__),"gitlab_logo.png")
+# with open(svg_path, "r") as f:
+#     svg_logo = f.read()
+# st.markdown(
+#     f"""
+#     <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 2rem;">
+#         {svg_logo}
+#     </div>
+#     """,
+#     unsafe_allow_html=True,
+# )
+
+
+import base64, os, streamlit as st
+
+png_path = os.path.join(os.path.dirname(__file__), "gitlab_logo.png")
+
+with open(png_path, "rb") as f:  # ✅ open in binary mode
+    data = f.read()
+
+b64 = base64.b64encode(data).decode()
 
 st.markdown(
-    "<h1 style='text-align: center; color: #4CAF50;'>🤖 Gitter</h1>",
+    f"""
+    <div style="display:flex; align-items:center; justify-content:center; margin-bottom:1rem;">
+        <img src="data:image/png;base64,{b64}" style="width:24px; height:24px; margin-right:8px;" />
+        <span style="font-weight:600; font-size:1.25rem;">Gitter</span>
+    </div>
+    """,
     unsafe_allow_html=True
 )
+
+# st.markdown(
+#     "<h1 style='text-align: center; color: #4CAF50;'>🤖 Gitter</h1>",
+#     unsafe_allow_html=True
+# )
 
 CONFIG= {"configurable":{"thread_id":"123"}}
 
