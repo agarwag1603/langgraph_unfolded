@@ -2,27 +2,11 @@
 import streamlit as st
 import backend_gitlab
 import os
-
-
-# # Read SVG logo
-# svg_path = os.path.join(os.path.dirname(__file__),"gitlab_logo.png")
-# with open(svg_path, "r") as f:
-#     svg_logo = f.read()
-# st.markdown(
-#     f"""
-#     <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 2rem;">
-#         {svg_logo}
-#     </div>
-#     """,
-#     unsafe_allow_html=True,
-# )
-
-
 import base64, os, streamlit as st
 
 png_path = os.path.join(os.path.dirname(__file__), "gitlab_logo.png")
 
-with open(png_path, "rb") as f:  # ✅ open in binary mode
+with open(png_path, "rb") as f: 
     data = f.read()
 
 b64 = base64.b64encode(data).decode()
@@ -36,11 +20,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-# st.markdown(
-#     "<h1 style='text-align: center; color: #4CAF50;'>🤖 Gitter</h1>",
-#     unsafe_allow_html=True
-# )
 
 CONFIG= {"configurable":{"thread_id":"123"}}
 
