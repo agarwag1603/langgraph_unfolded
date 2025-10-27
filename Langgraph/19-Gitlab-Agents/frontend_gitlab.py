@@ -47,7 +47,7 @@ if user_input:
     response=backend_gitlab.workflow.invoke({"messages":user_input}, config=config)
     ai_message=response['messages'][-1].content
     st.session_state['message_history'].append({'role':"assistant","content":ai_message})
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant",avatar="https://api.dicebear.com/7.x/bottts/svg?seed=AI"):
         #st.text(ai_message)   
         st.markdown(
         ai_message,

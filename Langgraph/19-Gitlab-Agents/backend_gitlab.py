@@ -12,7 +12,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 load_dotenv()
 
-LANGCHAIN_PROJECT="Langgraph-Gitlab-Projects"
+os.environ['LANGCHAIN_PROJECT']="Langgraph-Gitlab-Projects"
 
 GITLAB_URL= os.environ["GITLAB_URL"]
 # PROJECT_ID = os.getenv("PROJECT_ID")
@@ -28,7 +28,10 @@ class ToolCaller(TypedDict):
 @tool
 def fetch_gitlab_issues():
     """
-    Tool to fetch all the open and closed issues in the gitlab.
+    Tool to fetch all the open and closed issues in a specific gitlab project.
+    IMPORTANT: This requires a project to be set. If no project is currently set,
+    you should first ask the user which project they want to check, or list all 
+    projects using fetch_all_projects.
     """
     project_id = PROJECT_ID
     headers = {"PRIVATE-TOKEN": TOKEN}
@@ -48,6 +51,7 @@ def fetch_gitlab_issues():
 def close_gitlab_issue(issue_iid: str) -> dict:
     """
     Based on the issue ID, the function will help close the open tickets.
+    If user doesn't provide an issue_iid, prompt them to provide the issue_iid.
     """
     project_id = PROJECT_ID
     headers = {"PRIVATE-TOKEN": TOKEN}
@@ -63,7 +67,9 @@ def close_gitlab_issue(issue_iid: str) -> dict:
 
 @tool
 def add_comment_to_issue(issue_iid: str, comment: str):
-    """Add a comment to a GitLab issue."""
+    """Add a comment to a GitLab issue.
+    If user doesn't provide an issue_iid, prompt them to provide the issue_iid.
+    """
     project_id = PROJECT_ID
     headers = {"PRIVATE-TOKEN": TOKEN}
     url = f"{GITLAB_URL}/{project_id}/issues/{issue_iid}/notes"
@@ -77,7 +83,7 @@ def add_comment_to_issue(issue_iid: str, comment: str):
     
 @tool
 def fetch_all_projects():
-    """Fetch all the projects from gitlab."""
+    """Fetch all the projects from gitlab. If there are many more projects- safely prompt user any 5 projects only."""
     headers = {"PRIVATE-TOKEN": TOKEN}
     url = GITLAB_URL
     params = {
