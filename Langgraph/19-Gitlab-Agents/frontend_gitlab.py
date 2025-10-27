@@ -21,7 +21,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-CONFIG= {"configurable":{"thread_id":"123"}}
+
+config={
+        "configurable": {"config_name": "GitLab Chatbot"},
+        "thread_id": "123"
+    }
 
 if "message_history" not in st.session_state:
     st.session_state["message_history"]=[]
@@ -40,7 +44,7 @@ if user_input:
     unsafe_allow_html=True
 )  
 
-    response=backend_gitlab.workflow.invoke({"messages":user_input}, config=CONFIG)
+    response=backend_gitlab.workflow.invoke({"messages":user_input}, config=config)
     ai_message=response['messages'][-1].content
     st.session_state['message_history'].append({'role':"assistant","content":ai_message})
     with st.chat_message("assistant"):
