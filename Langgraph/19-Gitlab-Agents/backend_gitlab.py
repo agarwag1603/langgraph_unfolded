@@ -6,9 +6,13 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from langchain_core.tools import tool
 from langgraph.graph.message import add_messages
 from langchain_core.messages import BaseMessage
-import os
-import requests
 from langgraph.checkpoint.memory import InMemorySaver
+from fetch_gitlab_issues import fetch_gitlab_issues
+from gitlab_labels import add_labels_to_issue, remove_labels_from_issue, update_issue_labels
+from close_gitlab_issues import close_gitlab_issue
+from add_issues_comment import add_comment_to_issue
+from fetch_all_projects import fetch_all_projects
+import os
 
 load_dotenv()
 
@@ -26,83 +30,6 @@ class ToolCaller(TypedDict):
     current_project_id: Optional[str] 
     
 @tool
-def fetch_gitlab_issues():
-    """
-    Tool to fetch all the open and closed issues in a specific gitlab project.
-    IMPORTANT: This requires a project to be set. If no project is currently set,
-    you should first ask the user which project they want to check, or list all 
-    projects using fetch_all_projects.
-    """
-    project_id = PROJECT_ID
-    headers = {"PRIVATE-TOKEN": TOKEN}
-    url = f"{GITLAB_URL}/{project_id}/issues"
-
-    response = requests.get(url, headers=headers)
-
-    if response.status_code == 200:
-        issues = response.json()
-        return [{"iid": i["iid"], "title": i["title"], "state": i["state"],"description": i["description"], 
-                 "web_url": i["web_url"], "created_at":i["created_at"],"closed_at":i["closed_at"],"closed_by":i["author"]["username"]} 
-                 for i in issues]
-    else:
-        return [{"error": response.text}]
-        
-@tool
-def close_gitlab_issue(issue_iid: str) -> dict:
-    """
-    Based on the issue ID, the function will help close the open tickets.
-    If user doesn't provide an issue_iid, prompt them to provide the issue_iid.
-    """
-    project_id = PROJECT_ID
-    headers = {"PRIVATE-TOKEN": TOKEN}
-    url = f"{GITLAB_URL}/{project_id}/issues/{issue_iid}"
-    data = {"state_event": "close"}
-
-    response = requests.put(url, headers=headers, data=data)
-
-    if response.status_code == 200:
-        return {"message": f"Issue #{issue_iid} closed successfully."}
-    else:
-        return {"error": response.text}
-
-@tool
-def add_comment_to_issue(issue_iid: str, comment: str):
-    """Add a comment to a GitLab issue.
-    If user doesn't provide an issue_iid, prompt them to provide the issue_iid.
-    """
-    project_id = PROJECT_ID
-    headers = {"PRIVATE-TOKEN": TOKEN}
-    url = f"{GITLAB_URL}/{project_id}/issues/{issue_iid}/notes"
-    data = {"body": comment}
-
-    response = requests.post(url, headers=headers, data=data)
-    if response.status_code == 201:
-        return {"message": f"Comment added to issue #{issue_iid} successfully."}
-    else:
-        return {"error": response.text}
-    
-@tool
-def fetch_all_projects():
-    """Fetch all the projects from gitlab. If there are many more projects- safely prompt user any 5 projects only."""
-    headers = {"PRIVATE-TOKEN": TOKEN}
-    url = GITLAB_URL
-    params = {
-    "membership": True,
-    "simple": True,
-    "per_page": 100
-    }
-    response = requests.get(url, headers=headers, params=params)
-
-    if response.status_code == 200:
-        projects = response.json()
-        
-        return [{"project_name": p["name"], "project_id": p["id"], } 
-                 for p in projects]
-    
-    else:
-        return [{"error": response.text}]
-    
-@tool
 def set_project_id(project_id: str):
     """
     Set the project ID to use for subsequent GitLab operations.
@@ -110,117 +37,6 @@ def set_project_id(project_id: str):
     """
     return {"status": "success", "message": f"Project ID set to: {project_id}", "project_id": project_id}
 
-@tool
-def update_issue_labels(issue_iid: str, labels: str):
-    """
-    Update or add labels to a GitLab issue.
-    
-    Args:
-        issue_iid: The issue IID (internal ID) to update
-        labels: Comma-separated string of labels to set (e.g., "bug,high-priority,backend")
-                This will REPLACE all existing labels with the new ones.
-    
-    Example: update_issue_labels("42", "bug,urgent,needs-review")
-    """
-    project_id = PROJECT_ID
-    if not project_id:
-        return {"error": "No project selected. Please set a project first."}
-    
-    headers = {"PRIVATE-TOKEN": TOKEN}
-    url = f"{GITLAB_URL}/{project_id}/issues/{issue_iid}"
-    data = {"labels": labels}
-
-    response = requests.put(url, headers=headers, data=data)
-    
-    if response.status_code == 200:
-        return {"message": f"Labels updated for issue #{issue_iid} to: {labels}"}
-    else:
-        return {"error": response.text}
-
-@tool
-def add_labels_to_issue(issue_iid: str, labels: str):
-    """
-    Add new labels to a GitLab issue without removing existing ones.
-    
-    Args:
-        issue_iid: The issue IID (internal ID) to update
-        labels: Comma-separated string of labels to ADD (e.g., "bug,high-priority")
-                This will ADD these labels to any existing labels.
-    
-    Example: add_labels_to_issue("42", "urgent,needs-review")
-    """
-    project_id = PROJECT_ID
-    if not project_id:
-        return {"error": "No project selected. Please set a project first."}
-    
-    headers = {"PRIVATE-TOKEN": TOKEN}
-    
-    # First, get current labels
-    get_url = f"{GITLAB_URL}/{project_id}/issues/{issue_iid}"
-    get_response = requests.get(get_url, headers=headers)
-    
-    if get_response.status_code != 200:
-        return {"error": f"Failed to fetch current labels: {get_response.text}"}
-    
-    current_labels = get_response.json().get("labels", [])
-    new_labels_list = [label.strip() for label in labels.split(",")]
-    
-    # Combine current and new labels (remove duplicates)
-    combined_labels = list(set(current_labels + new_labels_list))
-    combined_labels_str = ",".join(combined_labels)
-    
-    # Update with combined labels
-    put_url = f"{GITLAB_URL}/{project_id}/issues/{issue_iid}"
-    data = {"labels": combined_labels_str}
-    
-    response = requests.put(put_url, headers=headers, data=data)
-    
-    if response.status_code == 200:
-        return {"message": f"Added labels to issue #{issue_iid}. Current labels: {combined_labels_str}"}
-    else:
-        return {"error": response.text}
-
-@tool
-def remove_labels_from_issue(issue_iid: str, labels: str):
-    """
-    Remove specific labels from a GitLab issue.
-    
-    Args:
-        issue_iid: The issue IID (internal ID) to update
-        labels: Comma-separated string of labels to REMOVE (e.g., "bug,wontfix")
-    
-    Example: remove_labels_from_issue("42", "wontfix,duplicate")
-    """
-    project_id = PROJECT_ID
-    if not project_id:
-        return {"error": "No project selected. Please set a project first."}
-    
-    headers = {"PRIVATE-TOKEN": TOKEN}
-    
-    # First, get current labels
-    get_url = f"{GITLAB_URL}/{project_id}/issues/{issue_iid}"
-    get_response = requests.get(get_url, headers=headers)
-    
-    if get_response.status_code != 200:
-        return {"error": f"Failed to fetch current labels: {get_response.text}"}
-    
-    current_labels = get_response.json().get("labels", [])
-    labels_to_remove = [label.strip() for label in labels.split(",")]
-    
-    # Remove specified labels
-    remaining_labels = [label for label in current_labels if label not in labels_to_remove]
-    remaining_labels_str = ",".join(remaining_labels)
-    
-    # Update with remaining labels
-    put_url = f"{GITLAB_URL}/{project_id}/issues/{issue_iid}"
-    data = {"labels": remaining_labels_str}
-    
-    response = requests.put(put_url, headers=headers, data=data)
-    
-    if response.status_code == 200:
-        return {"message": f"Removed labels from issue #{issue_iid}. Current labels: {remaining_labels_str}"}
-    else:
-        return {"error": response.text}
 
 tools = [fetch_gitlab_issues,close_gitlab_issue,add_comment_to_issue,fetch_all_projects,set_project_id,
          update_issue_labels,add_labels_to_issue,remove_labels_from_issue]
@@ -232,8 +48,6 @@ def chat_node(state: ToolCaller) -> ToolCaller:
     """
     result = llm_with_tools.invoke(state["messages"])
     return {"messages": [result]}
-
-# tool_node= ToolNode(tools)
 
 def tool_node_with_state(state: ToolCaller):
     """Execute tools and update current_project_id if set_project_id was called."""
