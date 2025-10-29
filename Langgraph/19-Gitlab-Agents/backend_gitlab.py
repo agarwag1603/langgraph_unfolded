@@ -13,6 +13,8 @@ from close_gitlab_issues import close_gitlab_issue
 from add_issues_comment import add_comment_to_issue
 from fetch_all_projects import fetch_all_projects
 from create_issues_gitlab import create_gitlab_issue
+from langgraph.checkpoint.sqlite import SqliteSaver
+import sqlite3
 import os
 
 load_dotenv()
@@ -69,6 +71,9 @@ def tool_node_with_state(state: ToolCaller):
     
     return {"messages": result["messages"], "current_project_id": updated_project_id}
 
+conn = sqlite3.connect(database='chatbot.db', check_same_thread=False)
+# Checkpointer
+Checkpointer= SqliteSaver(conn=conn)
 
 graph=StateGraph(ToolCaller)
 graph.add_node("chat_node",chat_node)
@@ -78,6 +83,13 @@ graph.add_edge(START,"chat_node")
 graph.add_conditional_edges("chat_node",tools_condition)
 graph.add_edge("tools","chat_node")
 
-checkpoint=InMemorySaver()
+# checkpoint=InMemorySaver()
 
-workflow=graph.compile(checkpointer=checkpoint)
+workflow=graph.compile(checkpointer=Checkpointer)
+
+def retrieve_all_threads():
+    all_threads = set()
+    for checkpoint in Checkpointer.list(None):
+        all_threads.add(checkpoint.config['configurable']['thread_id'])
+
+    return list(all_threads)

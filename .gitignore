@@ -10,3 +10,5 @@ Langgraph/11-Chatbot-Sqllite-Persistence/chatbot.db-shm/
 Langgraph/11-Chatbot-Sqllite-Persistence/chatbot.db-shm
 Langgraph/11-Chatbot-Sqllite-Persistence/chatbot.db-wal
 Langgraph/19-Gitlab-Agents/__pycache__/
+Langgraph/19-Gitlab-Agents/chatbot.db-shm
+Langgraph/19-Gitlab-Agents/chatbot.db-wal

@@ -1,8 +1,72 @@
 ## This frontend is without the streaming on the streamlit
 import streamlit as st
-import backend_gitlab
 import os
 import base64, os, streamlit as st
+from backend_gitlab import workflow, retrieve_all_threads
+from backend_gitlab import workflow
+from langchain_core.messages import HumanMessage
+import uuid
+
+# **************************************** utility functions *************************
+
+def generate_thread_id():
+    thread_id = uuid.uuid4()
+    return thread_id
+
+def reset_chat():
+    thread_id = generate_thread_id()
+    st.session_state['thread_id'] = thread_id
+    add_thread(st.session_state['thread_id'])
+    st.session_state['message_history'] = []
+
+def add_thread(thread_id):
+    if thread_id not in st.session_state['chat_threads']:
+        st.session_state['chat_threads'].append(thread_id)
+
+def load_conversation(thread_id):
+    state = workflow.get_state(config={'configurable': {'thread_id': thread_id}})
+    # Check if messages key exists in state values, return empty list if not
+    return state.values.get('messages', [])
+
+
+# **************************************** Session Setup ******************************
+if 'message_history' not in st.session_state:
+    st.session_state['message_history'] = []
+
+if 'thread_id' not in st.session_state:
+    st.session_state['thread_id'] = generate_thread_id()
+
+if 'chat_threads' not in st.session_state:
+    st.session_state['chat_threads'] = retrieve_all_threads()
+
+# **************************************** Sidebar UI *********************************
+
+st.sidebar.title('Gitter Convo')
+
+if st.sidebar.button('New Convo'):
+    reset_chat()
+
+st.sidebar.header('My Conversations')
+
+for thread_id in st.session_state['chat_threads'][::-1]:
+    if st.sidebar.button(str(thread_id)):
+        st.session_state['thread_id'] = thread_id
+        messages = load_conversation(thread_id)
+
+        temp_messages = []
+
+        for msg in messages:
+            if isinstance(msg, HumanMessage):
+                role='user'
+            else:
+                role='assistant'
+            temp_messages.append({'role': role, 'content': msg.content})
+
+        st.session_state['message_history'] = temp_messages
+
+add_thread(st.session_state['thread_id'])
+
+# **************************************** Main UI *********************************
 
 png_path = os.path.join(os.path.dirname(__file__), "gitlab_logo.png")
 
@@ -22,13 +86,13 @@ st.markdown(
 )
 
 
-config={
-        "configurable": {"config_name": "GitLab Chatbot"},
-        "thread_id": "123"
-    }
+# config={
+#         "configurable": {"config_name": "GitLab Chatbot"},
+#         "thread_id": "123"
+#     }
 
-if "message_history" not in st.session_state:
-    st.session_state["message_history"]=[]
+# if "message_history" not in st.session_state:
+#     st.session_state["message_history"]=[]
 
 for message in st.session_state["message_history"]:
     with st.chat_message(message['role']):
@@ -42,9 +106,17 @@ if user_input:
         st.markdown(
         user_input,
     unsafe_allow_html=True
-)  
-
-    response=backend_gitlab.workflow.invoke({"messages":user_input}, config=config)
+    )
+    
+    CONFIG = {
+        "configurable": {"thread_id": st.session_state["thread_id"]},
+        "metadata": {
+            "thread_id": st.session_state["thread_id"]
+        },
+        "run_name": "chat_turn",
+    }
+    
+    response=workflow.invoke({"messages":user_input}, config=CONFIG)
     ai_message=response['messages'][-1].content
     st.session_state['message_history'].append({'role':"assistant","content":ai_message})
     with st.chat_message("assistant",avatar="https://api.dicebear.com/7.x/bottts/svg?seed=AI"):
