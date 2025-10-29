@@ -12,6 +12,7 @@ from gitlab_labels import add_labels_to_issue, remove_labels_from_issue, update_
 from close_gitlab_issues import close_gitlab_issue
 from add_issues_comment import add_comment_to_issue
 from fetch_all_projects import fetch_all_projects
+from create_issues_gitlab import create_gitlab_issue
 import os
 
 load_dotenv()
@@ -38,7 +39,7 @@ def set_project_id(project_id: str):
     return {"status": "success", "message": f"Project ID set to: {project_id}", "project_id": project_id}
 
 
-tools = [fetch_gitlab_issues,close_gitlab_issue,add_comment_to_issue,fetch_all_projects,set_project_id,
+tools = [create_gitlab_issue,fetch_gitlab_issues,close_gitlab_issue,add_comment_to_issue,fetch_all_projects,set_project_id,
          update_issue_labels,add_labels_to_issue,remove_labels_from_issue]
 
 llm_with_tools= gpt_llm.bind_tools(tools)
