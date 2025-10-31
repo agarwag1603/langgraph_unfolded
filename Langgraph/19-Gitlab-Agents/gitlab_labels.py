@@ -2,6 +2,7 @@ from langchain_core.tools import tool
 import backend_gitlab
 import requests
 
+###Add gitlab lables
 @tool
 def add_labels_to_issue(issue_iid: str, labels: str):
     """
@@ -45,6 +46,7 @@ def add_labels_to_issue(issue_iid: str, labels: str):
     else:
         return {"error": response.text}
 
+###Remove gitlab lables
 @tool
 def remove_labels_from_issue(issue_iid: str, labels: str):
     """
@@ -87,6 +89,7 @@ def remove_labels_from_issue(issue_iid: str, labels: str):
     else:
         return {"error": response.text}
 
+###Update gitlab lables
 @tool
 def update_issue_labels(issue_iid: str, labels: str):
     """

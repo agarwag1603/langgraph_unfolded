@@ -85,15 +85,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
-# config={
-#         "configurable": {"config_name": "GitLab Chatbot"},
-#         "thread_id": "123"
-#     }
-
-# if "message_history" not in st.session_state:
-#     st.session_state["message_history"]=[]
-
 for message in st.session_state["message_history"]:
     with st.chat_message(message['role']):
        st.markdown(message['content'], unsafe_allow_html=True)

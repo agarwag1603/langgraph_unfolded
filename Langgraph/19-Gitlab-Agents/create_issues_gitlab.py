@@ -2,6 +2,7 @@ from langchain_core.tools import tool
 import backend_gitlab
 import requests
 
+###Create the issues on gitlab
 @tool
 def create_gitlab_issue(title: str, description: str , labels: str , assignee_id: str = ""):
     """

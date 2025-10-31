@@ -2,6 +2,7 @@ from langchain_core.tools import tool
 import backend_gitlab
 import requests
 
+###Fetch all the gitlab issues - opened/closed
 @tool
 def fetch_gitlab_issues():
     """

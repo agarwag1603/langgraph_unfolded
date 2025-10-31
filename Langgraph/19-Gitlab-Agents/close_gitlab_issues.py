@@ -2,6 +2,7 @@ from langchain_core.tools import tool
 import backend_gitlab
 import requests
 
+###Closing the issues on gitlab
 @tool
 def close_gitlab_issue(issue_iid: str) -> dict:
     """

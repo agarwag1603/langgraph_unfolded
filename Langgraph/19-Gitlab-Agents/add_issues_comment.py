@@ -2,6 +2,8 @@ from langchain_core.tools import tool
 import backend_gitlab
 import requests
 
+
+###Adding comments to the issues
 @tool
 def add_comment_to_issue(issue_iid: str, comment: str):
     """Add a comment to a GitLab issue.

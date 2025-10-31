@@ -2,6 +2,7 @@ from langchain_core.tools import tool
 import backend_gitlab
 import requests
 
+###Fetch all the projects on gitlab
 @tool
 def fetch_all_projects():
     """Fetch all the projects from gitlab. If there are many more projects- safely prompt user any 5 projects only."""
