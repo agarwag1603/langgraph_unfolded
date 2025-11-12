@@ -3,7 +3,6 @@ import streamlit as st
 import os
 import base64, os, streamlit as st
 from backend_gitlab import workflow, retrieve_all_threads
-from backend_gitlab import workflow
 from langchain_core.messages import HumanMessage
 import uuid
 

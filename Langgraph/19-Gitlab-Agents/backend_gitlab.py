@@ -22,7 +22,7 @@ load_dotenv()
 os.environ['LANGCHAIN_PROJECT']="Langgraph-Gitlab-Projects"
 
 GITLAB_URL= os.environ["GITLAB_URL"]
-# PROJECT_ID = os.getenv("PROJECT_ID")
+PROJECT_ID = None 
 TOKEN = os.getenv("GITLAB_PAT")
 
 headers = {"PRIVATE-TOKEN": TOKEN}
